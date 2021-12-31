@@ -450,49 +450,12 @@ Return<void> StreamIn::debug(const hidl_handle& fd, const hidl_vec<hidl_string>&
 
 #if MAJOR_VERSION >= 4
 Return<void> StreamIn::updateSinkMetadata(const SinkMetadata& sinkMetadata) {
-    if (mStream->update_sink_metadata == nullptr) {
-        return Void();  // not supported by the HAL
-    }
-    std::vector<record_track_metadata> halTracks;
-    halTracks.reserve(sinkMetadata.tracks.size());
-    for (auto& metadata : sinkMetadata.tracks) {
-        record_track_metadata halTrackMetadata = {
-            .source = static_cast<audio_source_t>(metadata.source), .gain = metadata.gain};
-#if MAJOR_VERSION >= 5
-        if (metadata.destination.getDiscriminator() ==
-            RecordTrackMetadata::Destination::hidl_discriminator::device) {
-            halTrackMetadata.dest_device =
-                static_cast<audio_devices_t>(metadata.destination.device().device);
-            strncpy(halTrackMetadata.dest_device_address,
-                    deviceAddressToHal(metadata.destination.device()).c_str(),
-                    AUDIO_DEVICE_MAX_ADDRESS_LEN);
-        }
-#endif
-        halTracks.push_back(halTrackMetadata);
-    }
-    const sink_metadata_t halMetadata = {
-        .track_count = halTracks.size(),
-        .tracks = halTracks.data(),
-    };
-    mStream->update_sink_metadata(mStream, &halMetadata);
-    return Void();
+    return Void();  // not supported by the HAL
 }
 
 Return<void> StreamIn::getActiveMicrophones(getActiveMicrophones_cb _hidl_cb) {
     Result retval = Result::NOT_SUPPORTED;
-    size_t actual_mics = AUDIO_MICROPHONE_MAX_COUNT;
-    audio_microphone_characteristic_t mic_array[AUDIO_MICROPHONE_MAX_COUNT];
-
     hidl_vec<MicrophoneInfo> microphones;
-    if (mStream->get_active_microphones != NULL &&
-        mStream->get_active_microphones(mStream, &mic_array[0], &actual_mics) == 0) {
-        microphones.resize(actual_mics);
-        for (size_t i = 0; i < actual_mics; ++i) {
-            halToMicrophoneCharacteristics(&microphones[i], mic_array[i]);
-        }
-        retval = Result::OK;
-    }
-
     _hidl_cb(retval, microphones);
     return Void();
 }

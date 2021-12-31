@@ -73,6 +73,7 @@ cc_library_shared {
     cflags: [
         "-DMAJOR_VERSION=4",
         "-DMINOR_VERSION=0",
+        "-Wno-error",
         "-include common/all-versions/VersionMacro.h",
     ]
 }
